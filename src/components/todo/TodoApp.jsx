@@ -1,16 +1,17 @@
 import { useState } from 'react'
 import './TodoApp.css'
-import { BrowserRouter, Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, useNavigate, useParams, Link } from 'react-router-dom'
 
 export default  function TodoApp() {
     return (
         <div className="TodoApp">
             <BrowserRouter>
                 <Routes>
-                    <Route path='/' element={<LoginComponent/>}></Route>
-                    <Route path='/login' element={<LoginComponent/>}></Route>
-                    <Route path='/welcome/:username' element={<WelcomeComponent/>}></Route>
-                    <Route path='*' element={<ErrorComponent/>}></Route>
+                    <Route path='/' element={<LoginComponent/>}/>
+                    <Route path='/login' element={<LoginComponent/>}/>
+                    <Route path='/welcome/:username' element={<WelcomeComponent/>}/>
+                    <Route path='/todos' element={<ListTodoComponent/>}/>
+                    <Route path='*' element={<ErrorComponent/>}/>
                 </Routes>
             </BrowserRouter>
             
@@ -41,7 +42,7 @@ function LoginComponent() {
         if(username==='theapeng' && password==='123456'){
             setShowSuccessMessage(true)
             setShowErrorMessage(false)
-            navigate('/welcome/theapeng')
+            navigate(`/welcome/${username}`)
         }else{
             setShowSuccessMessage(false)
             setShowErrorMessage(true)
@@ -77,13 +78,15 @@ function LoginComponent() {
 
 function WelcomeComponent() {
 
-    const params = useParams()
+    const {username} = useParams()
 
-    console.log(params.username)
+    console.log(username)
     return (
         <div className="WelcomeComponent">
-            <h1>Welcome</h1>
-            <div>Welcome Component</div>
+            <h1>Welcome {username}</h1>
+            <div>
+                Your todos: <Link to='/todos'>Go here</Link>
+            </div>
         </div>
     )
 }
@@ -93,6 +96,50 @@ function ErrorComponent() {
         <div className="ErrorComponent">
             <h1>Oops</h1>
             <div>404 page.</div>
+        </div>
+    )
+}
+
+function ListTodoComponent() {
+
+    const today = new Date();
+    const targetDate = new Date(today.getFullYear(), today.getMonth()+3, today.getDay())
+    
+    const todos = [
+        {id: 1, description: 'Learn AWS', done: false, targetDate:targetDate},
+        {id: 2, description: 'Learn Full Stack Dev', done: false, targetDate:targetDate},
+        {id: 3, description: 'Learn DevOps', done: false, targetDate:targetDate}
+    ]
+
+    return (
+        <div className="ListTodoComponent">
+            <h1>Things you want to do:</h1>
+            <div>
+                <table>
+                    <thead>
+                        <tr>
+                            <td>ID</td>
+                            <td>Description</td>
+                            <td>Done</td>
+                            <td>Target Date</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {
+                        todos.map(
+                            todo => (
+                                <tr key={todo.id}>
+                                    <td>{todo.id}</td>
+                                    <td>{todo.description}</td>
+                                    <td>{todo.done.toString()}</td>
+                                    <td>{todo.targetDate.toDateString()}</td>
+                                </tr>
+                            )
+                        )
+                    }
+                    </tbody>
+                </table>
+            </div>
         </div>
     )
 }
