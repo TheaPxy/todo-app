@@ -1,145 +1,51 @@
-import { useState } from 'react'
 import './TodoApp.css'
-import { BrowserRouter, Route, Routes, useNavigate, useParams, Link } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import LogoutComponent from './LogoutComponent'
+import FooterComponent from './FooterComponent'
+import HeaderComponent from './HeaderComponent'
+import LoginComponent from './LoginComponent'
+import WelcomeComponent from './WelcomeComponent'
+import ErrorComponent from './ErrorComponent'
+import ListTodoComponent from './ListTodoComponent'
+import AuthProvider, { useAuth } from './security/AuthContext'
 
+
+function AuthenticatedRoute({children}){
+    const authContext = useAuth()
+    if(authContext.isAuthenticated)
+        return children
+    return <Navigate to="/" />
+}
 export default  function TodoApp() {
     return (
         <div className="TodoApp">
-            <BrowserRouter>
-                <Routes>
-                    <Route path='/' element={<LoginComponent/>}/>
-                    <Route path='/login' element={<LoginComponent/>}/>
-                    <Route path='/welcome/:username' element={<WelcomeComponent/>}/>
-                    <Route path='/todos' element={<ListTodoComponent/>}/>
-                    <Route path='*' element={<ErrorComponent/>}/>
-                </Routes>
-            </BrowserRouter>
-            
+            <AuthProvider>
+                <BrowserRouter>
+                    <HeaderComponent/>
+                    <Routes>
+                        <Route path='/' element={<LoginComponent/>}/>
+                        <Route path='/login' element={<LoginComponent/>}/>
+                        <Route path='/welcome/:username' element={
+                           <AuthenticatedRoute>
+                                <WelcomeComponent/>
+                           </AuthenticatedRoute>
+                        }/>
+                        <Route path='/todos' element={
+                            <AuthenticatedRoute>
+                                <ListTodoComponent/>
+                            </AuthenticatedRoute>
+                        }/>
+                        <Route path='/logout' element={
+                            <AuthenticatedRoute>
+                                <LogoutComponent/>
+                            </AuthenticatedRoute>
+                        }/>
+                        <Route path='*' element={<ErrorComponent/>}/>
+                    </Routes>
+                    <FooterComponent/>
+                </BrowserRouter>
+            </AuthProvider>
             
         </div> 
-    )
-}
-
-function LoginComponent() {
-
-    const [username, setUsername] = useState('theapeng')
-    const [password, setPassword] = useState('')
-
-    const [showSuccessMessage, setShowSuccessMessage] = useState(false)
-    const [showErrorMessage, setShowErrorMessage] = useState(false)
-
-    const navigate = useNavigate();
-
-    function handleUsernameChange(event) {
-        setUsername(event.target.value);
-    }
-
-    function handlePasswordChange(event) {
-        setPassword(event.target.value);
-    }
-
-    function handleSubmit(){
-        if(username==='theapeng' && password==='123456'){
-            setShowSuccessMessage(true)
-            setShowErrorMessage(false)
-            navigate(`/welcome/${username}`)
-        }else{
-            setShowSuccessMessage(false)
-            setShowErrorMessage(true)
-        }
-    }
-
-    return (
-        <div className="LoginComponent">
-
-            <h1>Time to login</h1>
-            
-            {showSuccessMessage && <div className='successMessage'>Authenticated Successfully</div>}
-            {showErrorMessage && <div className='errorMessage'>Authenticated Failed. Please check your credentials.</div>}
-
-            <div className="LoginForm">
-                <div>
-                    <label>User Name</label>
-                    <input type="text" name="username" value={username} onChange={handleUsernameChange}/>
-                </div>
-                <div>
-                    <label>Password</label>
-                    <input type="password" name="password" value={password} onChange={handlePasswordChange}/>
-                </div>
-                <div>
-                    <button type="button" name="login" onClick={handleSubmit}>Login</button>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-
-
-function WelcomeComponent() {
-
-    const {username} = useParams()
-
-    console.log(username)
-    return (
-        <div className="WelcomeComponent">
-            <h1>Welcome {username}</h1>
-            <div>
-                Your todos: <Link to='/todos'>Go here</Link>
-            </div>
-        </div>
-    )
-}
-
-function ErrorComponent() {
-    return (
-        <div className="ErrorComponent">
-            <h1>Oops</h1>
-            <div>404 page.</div>
-        </div>
-    )
-}
-
-function ListTodoComponent() {
-
-    const today = new Date();
-    const targetDate = new Date(today.getFullYear(), today.getMonth()+3, today.getDay())
-    
-    const todos = [
-        {id: 1, description: 'Learn AWS', done: false, targetDate:targetDate},
-        {id: 2, description: 'Learn Full Stack Dev', done: false, targetDate:targetDate},
-        {id: 3, description: 'Learn DevOps', done: false, targetDate:targetDate}
-    ]
-
-    return (
-        <div className="ListTodoComponent">
-            <h1>Things you want to do:</h1>
-            <div>
-                <table>
-                    <thead>
-                        <tr>
-                            <td>ID</td>
-                            <td>Description</td>
-                            <td>Done</td>
-                            <td>Target Date</td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {
-                        todos.map(
-                            todo => (
-                                <tr key={todo.id}>
-                                    <td>{todo.id}</td>
-                                    <td>{todo.description}</td>
-                                    <td>{todo.done.toString()}</td>
-                                    <td>{todo.targetDate.toDateString()}</td>
-                                </tr>
-                            )
-                        )
-                    }
-                    </tbody>
-                </table>
-            </div>
-        </div>
     )
 }
